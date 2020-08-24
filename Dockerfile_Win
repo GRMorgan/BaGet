@@ -1,0 +1,24 @@
+FROM mcr.microsoft.com/windows/nanoserver:sac2016 AS base
+WORKDIR /app
+EXPOSE 80
+
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1-nanoserver-1903 AS build
+RUN curl https://nodejs.org/dist/v10.22.0/node-v10.22.0-win-x64.zip  -o node.zip
+RUN mkdir C:\node
+RUN tar -xf node.zip -C C:\node
+
+WORKDIR /src
+COPY /src .
+RUN dotnet restore BaGet
+RUN dotnet build BaGet -c Release -o /app
+
+FROM build AS publish
+USER ContainerAdministrator
+RUN setx /M PATH "%PATH%;C:\\node\\node-v10.22.0-win-x64"
+USER ContainerUser
+RUN dotnet publish BaGet -c Release -o /app --self-contained true -r win10-x64
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app .
+ENTRYPOINT ["BaGet.exe"]
