@@ -78,6 +78,7 @@ namespace BaGet
                         options.Limits.MaxRequestBodySize = null;
                     });
 
+                    web.UseUrls("http://*:80");
                     web.UseStartup<Startup>();
                 });
         }
